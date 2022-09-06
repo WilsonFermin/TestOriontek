@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EventrixAPI.DTOs;
 using EventrixAPI.Entidades;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,6 +82,38 @@ namespace EventrixAPI.Controllers
             
             var cliente = new Cliente() { Id = id };
             context.Remove(cliente);
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<ClientePatchDTO> patchDocumnet)
+        {
+            if(patchDocumnet == null)
+            {
+                return BadRequest();
+            }
+
+            var clienteDB = await context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(clienteDB == null)
+            {
+                return NotFound("Cliente no existe");
+            }
+
+            var clienteDTO = mapper.Map<ClientePatchDTO>(clienteDB);
+       
+            patchDocumnet.ApplyTo(clienteDTO, ModelState);
+
+            var esValido = TryValidateModel(clienteDTO);
+
+            if (!esValido)
+            {
+                return BadRequest(ModelState);
+            }
+
+            mapper.Map(clienteDTO, clienteDB);
+            
             await context.SaveChangesAsync();
             return NoContent();
         }
