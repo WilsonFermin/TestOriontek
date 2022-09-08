@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using EventrixAPI.DTOs;
 using EventrixAPI.Entidades;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<List<ClienteDTO>>> Get()
         {
             var clientes = await context.Clientes.ToListAsync();
@@ -28,6 +31,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObtenerCliente")]
+        [AllowAnonymous]
         public async Task<ActionResult<ClienteDTOConDirecciones>> Get(int id)
         {
             var cliente = await context.Clientes.Include(x => x.Direcciones).FirstOrDefaultAsync(x => x.Id == id);
