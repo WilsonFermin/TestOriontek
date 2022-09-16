@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using EventrixAPI.DTOs;
 using EventrixAPI.Entidades;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +10,7 @@ namespace EventrixAPI.Controllers
 {
     [ApiController]
     [Route("api/clientes/{clienteId:int}/direcciones")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class DireccionesController: ControllerBase
     {
         private readonly ApplicationDbContext context;
@@ -20,6 +23,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<DireccionDTO>>> Get(int clienteId)
         {
             if (!ClienteExiste(clienteId).Result)
@@ -37,6 +41,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObtenerDireccion")]
+        [AllowAnonymous]
         public async Task<ActionResult<DireccionDTO>> Get(int id, int clienteId)
         {
             if (!ClienteExiste(clienteId).Result)
@@ -103,6 +108,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "esAdmin")]
         public async Task<ActionResult> Delete(int id, int clienteId)
         {
             if (!ClienteExiste(clienteId).Result)
@@ -125,7 +131,7 @@ namespace EventrixAPI.Controllers
                 return NotFound("Direccion no existe.");
             }
 
-            context.Remove(new Direccion() { Id = id });
+            context.Remove(new Direccion() { Id = id, ClienteId = clienteId });
             await  context.SaveChangesAsync();
             return NoContent();
         }

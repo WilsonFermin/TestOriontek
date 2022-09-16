@@ -29,8 +29,11 @@ namespace EventrixAPI
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-                //options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             });
+
+            services.AddDbContext<ApplicationDbContextPatch>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddEndpointsApiExplorer();
 
@@ -54,10 +57,16 @@ namespace EventrixAPI
 
             services.AddAutoMapper(typeof(Startup));
 
-            //servicio para configurar nuestro sistema de usuarios
+            //servicio para configurar nuestro sistema de usuarios (Autenticacion)
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            //servicio para agregar la autorizacion basada en claim y asi crear roles
+            services.AddAuthorization(opciones =>
+            {
+                opciones.AddPolicy("esAdmin", politica => politica.RequireClaim("esAdmin"));
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

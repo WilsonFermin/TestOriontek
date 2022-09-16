@@ -11,19 +11,22 @@ namespace EventrixAPI.Controllers
 {
     [ApiController]
     [Route("api/clientes")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ClientesController : ControllerBase
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly ApplicationDbContextPatch contextPatch;
 
-        public ClientesController(ApplicationDbContext context, IMapper mapper)
+        public ClientesController(ApplicationDbContext context, IMapper mapper, ApplicationDbContextPatch contextPatch)
         {
             this.context = context;
             this.mapper = mapper;
+            this.contextPatch = contextPatch;
         }
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [AllowAnonymous]           
         public async Task<ActionResult<List<ClienteDTO>>> Get()
         {
             var clientes = await context.Clientes.ToListAsync();
@@ -75,6 +78,7 @@ namespace EventrixAPI.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "esAdmin")]
         public async Task<ActionResult> Delete(int id)
         {
             var existe = await context.Clientes.AnyAsync(x => x.Id == id);
@@ -98,7 +102,7 @@ namespace EventrixAPI.Controllers
                 return BadRequest();
             }
 
-            var clienteDB = await context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
+            var clienteDB = await contextPatch.Clientes.FirstOrDefaultAsync(x => x.Id == id);
 
             if(clienteDB == null)
             {
@@ -118,7 +122,7 @@ namespace EventrixAPI.Controllers
 
             mapper.Map(clienteDTO, clienteDB);
             
-            await context.SaveChangesAsync();
+            await contextPatch.SaveChangesAsync();
             return NoContent();
         }
     }
