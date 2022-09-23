@@ -67,6 +67,15 @@ namespace EventrixAPI
             {
                 opciones.AddPolicy("esAdmin", politica => politica.RequireClaim("esAdmin"));
             });
+
+            //Para que mis clientes puedan ver la cabecera (Total de registros) de la entidad a paginar  
+            services.AddCors(opciones =>
+            {
+                opciones.AddDefaultPolicy(buider =>
+                {
+                    buider.WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

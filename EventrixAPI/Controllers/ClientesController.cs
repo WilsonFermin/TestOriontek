@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EventrixAPI.DTOs;
 using EventrixAPI.Entidades;
+using EventrixAPI.Utilidades;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -27,9 +28,11 @@ namespace EventrixAPI.Controllers
 
         [HttpGet]
         [AllowAnonymous]           
-        public async Task<ActionResult<List<ClienteDTO>>> Get()
+        public async Task<ActionResult<List<ClienteDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
-            var clientes = await context.Clientes.ToListAsync();
+            var queryable = context.Clientes.AsQueryable();
+            await HttpContext.InsertarParametrosPaginacionEnCabecera(queryable);
+            var clientes = await queryable.OrderBy( x => x.Nombre).Paginar(paginacionDTO).ToListAsync();
             return mapper.Map<List<ClienteDTO>>(clientes);
         }
 
