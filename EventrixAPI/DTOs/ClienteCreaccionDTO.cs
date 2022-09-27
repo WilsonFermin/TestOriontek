@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EventrixAPI.Utilidades;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventrixAPI.DTOs
 {
@@ -9,6 +10,7 @@ namespace EventrixAPI.DTOs
         public string Nombre { get; set; }
         public string Apellidos { get; set; }
         [Required]
+        [FormatoCedulaCorrecto]
         public string Cedula { get; set; }
         [Phone]
         public string Telefono { get; set; }
